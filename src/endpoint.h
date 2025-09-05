@@ -234,6 +234,7 @@ public:
     void link_group_member(std::shared_ptr<Endpoint> other);
 
     std::string get_type() const { return this->_type; }
+    std::string get_name() const { return this->_name; }
     std::string get_group_name() const { return this->_group_name; };
 
     struct buffer rx_buf;

@@ -54,9 +54,10 @@ static const struct option long_options[] = {{"endpoints", required_argument, nu
                                              {"verbose", no_argument, nullptr, 'v'},
                                              {"version", no_argument, nullptr, 'V'},
                                              {"sniffer-sysid", required_argument, nullptr, 's'},
+                                             {"sender-id", required_argument, nullptr, 'I'},
                                              {}};
 
-static const char *short_options = "he:rt:c:d:l:p:g:vV:s:T:y";
+static const char *short_options = "he:rt:c:d:l:p:g:vV:s:T:yI";
 
 static void help(FILE *fp)
 {
@@ -88,6 +89,7 @@ static void help(FILE *fp)
         "  -V --version                 Show version\n"
         "  -s --sniffer-sysid           Sysid that all messages are sent to.\n"
         "  -y --syslog                  Use syslog output instead of stderr\n"
+        "  -I --sender-id <id>          Set sender ID for retransmission client\n"
         "  -h --help                    Print this message\n",
         program_invocation_short_name);
 }
@@ -269,6 +271,16 @@ static int parse_argv(int argc, char *argv[], Configuration &config)
             config.sniffer_sysid = id;
             break;
         }
+        case 'I': {
+            uint32_t id = atoi(optarg);
+            if (id == 0) {
+                log_error("Invalid sender id %s", optarg);
+                help(stderr);
+                return -EINVAL;
+            }
+            config.sender_id = id;
+            break;
+        }
         case 'p': {
             char *ip;
             unsigned long port;
@@ -441,6 +453,7 @@ static int parse_confs(ConfFile &conffile, Configuration &config)
         {"DebugLogLevel",       false, parse_log_level,         OPTIONS_TABLE_STRUCT_FIELD(Configuration, debug_log_level)},
         {"DeduplicationPeriod", false, ConfFile::parse_ul,      OPTIONS_TABLE_STRUCT_FIELD(Configuration, dedup_period_ms)},
         {"SnifferSysid",    false, ConfFile::parse_ul,      OPTIONS_TABLE_STRUCT_FIELD(Configuration, sniffer_sysid)},
+        {"SenderId",        false, ConfFile::parse_ul,     OPTIONS_TABLE_STRUCT_FIELD(Configuration, sender_id)},
         {}
     };
     // clang-format on

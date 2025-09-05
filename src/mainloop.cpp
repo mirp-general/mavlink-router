@@ -155,9 +155,16 @@ int Mainloop::write_msg(const std::shared_ptr<Endpoint> &e, const struct buffer 
     return r;
 }
 
-void Mainloop::route_msg(struct buffer *buf)
+void Mainloop::route_msg(Endpoint* endpoint_entry, struct buffer *buf)
 {
     bool unknown = true;
+
+    // Send message to retransmission client if it exists
+    if (_retransmission_client && endpoint_entry) {
+        // Assuming retransmission client accepts all messages for now
+        _retransmission_client->write_msg(endpoint_entry, buf);
+        unknown = false;
+    }
 
     for (const auto &e : this->g_endpoints) {
         auto acceptState = e->accept_msg(buf);
@@ -313,6 +320,10 @@ int Mainloop::loop()
 
     clear_endpoints();
 
+    if (_retransmission_client) {
+        _retransmission_client->stop();
+    }
+
     // free all remaning Timeouts
     while (_timeouts != nullptr) {
         Timeout *current = _timeouts;
@@ -400,6 +411,15 @@ bool Mainloop::add_endpoints(const Configuration &config)
         }
 
         g_endpoints.emplace_back(tcp);
+    }
+
+    // Create RetransmissionClient if sender_id is configured
+    if (config.sender_id != 0) {
+        _retransmission_client = std::make_unique<RetransmissionClient>("RetransmissionClient", config.sender_id);
+        if (_retransmission_client->start() < 0) {
+            log_error("Failed to start RetransmissionClient");
+            return false;
+        }
     }
 
     // Link grouped endpoints together

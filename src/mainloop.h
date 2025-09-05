@@ -30,6 +30,8 @@
 #include "timeout.h"
 #include "ulog.h"
 
+#include "retransmission_client.h"
+
 struct Configuration {
     std::string conf_file_name;        ///< CLI "conf-file" only!
     std::string conf_dir;              ///< CLI "conf-dir" only!
@@ -44,6 +46,7 @@ struct Configuration {
     std::vector<UdpEndpointConfig> udp_configs;
     std::vector<TcpEndpointConfig> tcp_configs;
     unsigned long sniffer_sysid;
+    unsigned long sender_id; // New field for retransmission client
 };
 
 struct endpoint_entry {
@@ -58,7 +61,7 @@ public:
     int mod_fd(int fd, void *data, int events) const;
     int remove_fd(int fd) const;
     int loop();
-    void route_msg(struct buffer *buf);
+    void route_msg(Endpoint* endpoint_entry, struct buffer *buf);
     void handle_tcp_connection();
     int write_msg(const std::shared_ptr<Endpoint> &e, const struct buffer *buf) const;
     void process_tcp_hangups();
@@ -117,6 +120,7 @@ private:
     Timeout *_timeouts = nullptr;
 
     Dedup _msg_dedup{0}; // disabled by default
+    std::unique_ptr<RetransmissionClient> _retransmission_client{nullptr};
 
     struct {
         uint32_t msg_to_unknown = 0;
