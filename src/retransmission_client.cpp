@@ -148,8 +148,8 @@ int RetransmissionClient::write_msg(Endpoint *endpoint_entry,
       endpoint_entry->get_type(),
       endpoint_entry->get_name(),
       endpoint_entry->get_group_name(),
-      std::vector<uint8_t>(buf->curr.payload,
-                           buf->curr.payload + buf->curr.payload_len)
+      std::vector<uint8_t>(buf->data,
+                           buf->data + buf->len)
   };
   std::vector<uint8_t> new_buf = packet_log.Serialize();
   //   const uint32_t sender_id = this->_sender_id;

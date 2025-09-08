@@ -63,7 +63,7 @@ std::vector<uint8_t> DeserializePayload(const uint8_t* buffer, size_t* pos) {
 struct PacketLog {
   uint32_t sender_id_;
   uint8_t type_id_;
-  uint8_t msg_id_;
+  uint32_t msg_id_;
   uint8_t target_sysid_;
   uint8_t target_compid_;
   uint8_t src_sysid_;
@@ -80,7 +80,7 @@ struct PacketLog {
     std::vector<uint8_t> buffer;
     SerializeUint32(sender_id_, &buffer);
     buffer.push_back(type_id_);
-    buffer.push_back(msg_id_);
+    SerializeUint32(msg_id_, &buffer);
     buffer.push_back(target_sysid_);
     buffer.push_back(target_compid_);
     buffer.push_back(src_sysid_);
@@ -90,31 +90,6 @@ struct PacketLog {
     SerializeString(e_group_name_, &buffer);
     SerializePayload(payload_, &buffer);
     return buffer;
-  }
-
-  // Deserializes from a buffer starting at pos, advancing pos.
-  // Assumes the buffer has sufficient data; no error checking.
-  // Uses little-endian for uint32_t.
-  static PacketLog Deserialize(const uint8_t* buffer, size_t* pos) {
-    PacketLog packet;
-    packet.sender_id_ = DeserializeUint32(buffer, pos);
-    packet.type_id_ = buffer[*pos];
-    ++(*pos);
-    packet.msg_id_ = buffer[*pos];
-    ++(*pos);
-    packet.target_sysid_ = buffer[*pos];
-    ++(*pos);
-    packet.target_compid_ = buffer[*pos];
-    ++(*pos);
-    packet.src_sysid_ = buffer[*pos];
-    ++(*pos);
-    packet.src_compid_ = buffer[*pos];
-    ++(*pos);
-    packet.e_type_ = DeserializeString(buffer, pos);
-    packet.e_name_ = DeserializeString(buffer, pos);
-    packet.e_group_name_ = DeserializeString(buffer, pos);
-    packet.payload_ = DeserializePayload(buffer, pos);
-    return packet;
   }
 };
 
