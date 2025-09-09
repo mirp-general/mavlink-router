@@ -39,6 +39,7 @@ public:
     void stop();
     void handle_read();
     int write_msg(Endpoint* endpoint_entry, const struct buffer *buf);
+    int write_stats_msg(Endpoint* endpoint_entry, const std::vector<uint8_t>& buf);
 
 private:
     int _fd{-1};

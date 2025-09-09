@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "comm.h"
+#include "endpoint_metrics.h"
 #include "pollable.h"
 #include "timeout.h"
 
@@ -237,6 +238,8 @@ public:
     std::string get_name() const { return this->_name; }
     std::string get_group_name() const { return this->_group_name; };
 
+    EndpointMetrics* get_metrics() const { return _metrics.get(); }
+
     struct buffer rx_buf;
     struct buffer tx_buf;
 
@@ -276,6 +279,8 @@ protected:
 
     uint32_t _incomplete_msgs = 0;
     std::vector<uint16_t> _sys_comp_ids;
+
+    std::unique_ptr<EndpointMetrics> _metrics;
 
 private:
     std::vector<uint32_t> _allowed_outgoing_msg_ids;

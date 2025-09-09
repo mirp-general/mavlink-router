@@ -115,6 +115,22 @@ void RetransmissionClient::stop() {
   _disconnect();  // Disconnect and cleanup socket
 }
 
+int RetransmissionClient::write_stats_msg(Endpoint *endpoint_entry,
+                                        const std::vector<uint8_t>& buf) {
+  {
+    std::lock_guard<std::mutex> lock(_send_queue_mtx);
+    _send_queue.push(buf);
+  }
+
+  // Signal the IO thread that there's data to send
+  uint64_t val = 1;
+  if (write(_signal_fd, &val, sizeof(val)) < 0) {
+    log_error("RetransmissionClient: error writing to signal fd (%m)");
+    return -errno;
+  }
+  return 0;
+}
+
 void RetransmissionClient::handle_read() {
   // Not expecting to read anything from the retransmission server
   // If data is received, it will be discarded for now.

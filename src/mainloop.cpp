@@ -415,11 +415,17 @@ bool Mainloop::add_endpoints(const Configuration &config)
 
     // Create RetransmissionClient if sender_id is configured
     if (config.sender_id != 0) {
-        _retransmission_client = std::make_unique<RetransmissionClient>("RetransmissionClient", config.sender_id);
+        _retransmission_client = std::make_shared<RetransmissionClient>("RetransmissionClient", config.sender_id);
         if (_retransmission_client->start() < 0) {
             log_error("Failed to start RetransmissionClient");
             return false;
         }
+    }
+
+    // Create ChannelLogger and start logging if RetransmissionClient is available
+    if (_retransmission_client) {
+        _channel_logger = std::make_shared<ChannelLogger>(g_endpoints, _retransmission_client, config.sender_id);
+        _channel_logger->start_logging();
     }
 
     // Link grouped endpoints together

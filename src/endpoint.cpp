@@ -195,6 +195,7 @@ static unsigned int ipv6_get_scope_id(const char *ip)
 Endpoint::Endpoint(std::string type, std::string name)
     : _type{std::move(type)}
     , _name{std::move(name)}
+    , _metrics(std::make_unique<EndpointMetrics>())
 {
     rx_buf.data = (uint8_t *)malloc(RX_BUF_MAX_SIZE);
     rx_buf.len = 0;
@@ -244,6 +245,7 @@ int Endpoint::handle_read()
             }
         } else {
             _add_sys_comp_id(buf.curr.src_sysid, buf.curr.src_compid);
+            _metrics->update_read_metrics(buf.len, std::chrono::steady_clock::now());
             Mainloop::get_instance().route_msg(this, &buf);
         }
     }
@@ -1012,8 +1014,9 @@ int UartEndpoint::write_msg(const struct buffer *pbuf)
         return -EAGAIN;
     }
 
-    _stat.write.total++;
-    _stat.write.bytes += pbuf->len;
+    // _stat.write.total++; // This is now tracked by EndpointMetrics
+    // _stat.write.bytes += pbuf->len; // This is now tracked by EndpointMetrics
+    _metrics->update_write_metrics(r, std::chrono::steady_clock::now());
 
     /* Incomplete packet, we warn and discard the rest */
     if (r != (ssize_t)pbuf->len) {
@@ -1362,8 +1365,9 @@ int UdpEndpoint::write_msg(const struct buffer *pbuf)
         return -errno;
     };
 
-    _stat.write.total++;
-    _stat.write.bytes += pbuf->len;
+    // _stat.write.total++; // This is now tracked by EndpointMetrics
+    // _stat.write.bytes += pbuf->len; // This is now tracked by EndpointMetrics
+    _metrics->update_write_metrics(r, std::chrono::steady_clock::now());
 
     /* Incomplete packet, we warn and discard the rest */
     if (r != (ssize_t)pbuf->len) {
@@ -1721,8 +1725,9 @@ int TcpEndpoint::write_msg(const struct buffer *pbuf)
         return -errno;
     };
 
-    _stat.write.total++;
-    _stat.write.bytes += pbuf->len;
+    // _stat.write.total++; // This is now tracked by EndpointMetrics
+    // _stat.write.bytes += pbuf->len; // This is now tracked by EndpointMetrics
+    _metrics->update_write_metrics(r, std::chrono::steady_clock::now());
 
     /* Incomplete packet, we warn and discard the rest */
     if (r != (ssize_t)pbuf->len) {

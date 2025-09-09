@@ -31,6 +31,7 @@
 #include "ulog.h"
 
 #include "retransmission_client.h"
+#include "channellogger.h"
 
 struct Configuration {
     std::string conf_file_name;        ///< CLI "conf-file" only!
@@ -120,7 +121,8 @@ private:
     Timeout *_timeouts = nullptr;
 
     Dedup _msg_dedup{0}; // disabled by default
-    std::unique_ptr<RetransmissionClient> _retransmission_client{nullptr};
+    std::shared_ptr<RetransmissionClient> _retransmission_client{nullptr};
+    std::shared_ptr<ChannelLogger> _channel_logger{nullptr};
 
     struct {
         uint32_t msg_to_unknown = 0;
