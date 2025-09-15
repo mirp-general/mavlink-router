@@ -71,6 +71,8 @@ struct ChannelStatsPacket {
   float incoming_bitrate_kbps_;
   float outgoing_bitrate_kbps_;
   float incoming_jitter_ms_;
+  float signal_level_;
+  float noise_level_;
 
   // Serializes the struct into a vector<uint8_t> in the order of fields.
   // Assumes all lengths fit in uint8_t (i.e., < 256).
@@ -86,21 +88,9 @@ struct ChannelStatsPacket {
     SerializeFloat(incoming_bitrate_kbps_, &buffer);
     SerializeFloat(outgoing_bitrate_kbps_, &buffer);
     SerializeFloat(incoming_jitter_ms_, &buffer);
+    SerializeFloat(signal_level_, &buffer);
+    SerializeFloat(noise_level_, &buffer);
     return buffer;
-  }
-
-  // Deserializes data from a buffer into the struct.
-  void Deserialize(const std::vector<uint8_t>& buffer) {
-    size_t pos = 0;
-    sender_id_ = DeserializeUint32(buffer.data(), &pos);
-    type_id_ = buffer[pos++];
-    e_type_ = DeserializeString(buffer.data(), &pos);
-    e_name_ = DeserializeString(buffer.data(), &pos);
-    e_group_name_ = DeserializeString(buffer.data(), &pos);
-    is_active_ = static_cast<bool>(buffer[pos++]);
-    incoming_bitrate_kbps_ = DeserializeFloat(buffer.data(), &pos);
-    outgoing_bitrate_kbps_ = DeserializeFloat(buffer.data(), &pos);
-    incoming_jitter_ms_ = DeserializeFloat(buffer.data(), &pos);
   }
 };
 

@@ -22,6 +22,7 @@
 #include <vector>
 #include <chrono>
 #include <functional>
+#include <iostream>
 
 ChannelLogger::ChannelLogger(std::vector<std::shared_ptr<Endpoint>> &endpoints,
                              std::shared_ptr<RetransmissionClient> retransmission_client,
@@ -75,7 +76,9 @@ void ChannelLogger::_send_channel_stats() {
             e->get_metrics()->is_active(),
             e->get_metrics()->get_incoming_bitrate_kbps(time_interval_ms),
             e->get_metrics()->get_outgoing_bitrate_kbps(time_interval_ms),
-            e->get_metrics()->get_incoming_jitter_ms()
+            e->get_metrics()->get_incoming_jitter_ms(),
+            1,
+            2,
         };
 
         std::vector<uint8_t> serialized_packet = packet.Serialize();
